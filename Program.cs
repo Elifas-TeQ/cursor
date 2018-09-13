@@ -51,16 +51,14 @@ namespace MoveCursorWindowless
 
         private static void MakeMove()
         {
-            var w = Screen.PrimaryScreen.Bounds.Width;
-            var h = Screen.PrimaryScreen.Bounds.Height;
+            var x = Cursor.Position.X;
+            var y = Cursor.Position.Y;
 
-            var centerX = w / 2;
-            var centerY = h / 2;
             var radius = 50;
 
             for (int i = 0; i < 360; i++)
             {
-                var p = PointOnCircle(radius, i, new PointF(centerX, centerY));
+                var p = PointOnCircle(radius, i, new PointF(x, y));
                 SetCursorPos((int)p.X, (int)p.Y);
 
                 System.Threading.Thread.Sleep(2);
