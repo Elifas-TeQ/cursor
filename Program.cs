@@ -68,7 +68,7 @@ namespace MoveCursorWindowless
         private static PointF PointOnCircle(float radius, float angle, PointF origin)
         {
             // Convert from degrees to radians via multiplication by PI/180        
-            var x = (float)(radius * Math.Cos(angle * Math.PI / 180F)) + origin.X;
+            var x = (float)(radius * Math.Cos(angle * Math.PI / 180F)) - radius + origin.X;
             var y = (float)(radius * Math.Sin(angle * Math.PI / 180F)) + origin.Y;
 
             return new PointF(x, y);
