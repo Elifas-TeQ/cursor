@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace MoveCursorWindowless
@@ -11,12 +12,12 @@ namespace MoveCursorWindowless
         {
             trayIcon = new NotifyIcon()
             {
-                Icon = new System.Drawing.Icon("circle.ico"),
+                Icon = new Icon("arrow.ico"),
                 ContextMenu = new ContextMenu(new MenuItem[]
                 {
                     new MenuItem("Exit", Exit)
                 }),
-                Visible = true
+                Visible = true,
             };
         }
 

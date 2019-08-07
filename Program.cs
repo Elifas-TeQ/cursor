@@ -2,32 +2,30 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using static System.Threading.Thread;
 
 namespace MoveCursorWindowless
 {
     static class Program
     {
-        [DllImport("User32.Dll")]
-        static extern long SetCursorPos(int x, int y);
-
         [DllImport("User32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool GetCursorPos(out Point lpPoint);
+        private static extern bool GetCursorPos(out Point lpPoint);
 
-        static Timer Timer = new Timer { Interval = 30_000 };
+        [DllImport("User32.Dll")]
+        private static extern long SetCursorPos(int x, int y);
 
-        static Point _previousPosition;
+        private static Point LastCursorPos;
 
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
+        private static Timer Timer = new Timer { Interval = 5_000 };
+
         [STAThread]
         static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            GetCursorPos(out _previousPosition);
+            GetCursorPos(out LastCursorPos);
 
             Timer.Tick += OnTimerTick;
             Timer.Start();
@@ -39,40 +37,42 @@ namespace MoveCursorWindowless
 
         private static void OnTimerTick(object sender, EventArgs e)
         {
-            GetCursorPos(out Point currentPosition);
+            GetCursorPos(out Point currentCursorPos);
 
-            if (currentPosition == _previousPosition)
+            if (currentCursorPos == LastCursorPos)
             {
-                MakeMove();
+                MoveCursorAsArrow(currentCursorPos);
             }
 
-            _previousPosition = currentPosition;
+            LastCursorPos = currentCursorPos;
         }
 
-        private static void MakeMove()
+        private static void MoveCursorAsArrow(Point currentCursorPos)
         {
-            var x = Cursor.Position.X;
-            var y = Cursor.Position.Y;
+            MoveCursor(ref currentCursorPos, 72, 0, -1);
+            MoveCursor(ref currentCursorPos, 30, -1, 1);
+            MoveCursor(ref currentCursorPos, 30, 1, -1);
+            MoveCursor(ref currentCursorPos, 30, 1, 1);
+            MoveCursor(ref currentCursorPos, 30, -1, -1);
+            MoveCursor(ref currentCursorPos, 72, 0, 1);
+        }
 
-            var radius = 50;
-
-            for (int i = 0; i < 360; i++)
+        private static void MoveCursor(ref Point originPos, int length, int stepX, int stepY)
+        {
+            for (int i = 1; i < length; i++)
             {
-                var p = PointOnCircle(radius, i, new PointF(x, y));
-                SetCursorPos((int)p.X, (int)p.Y);
+                var newX = GetNewCoordinate(originPos.X, i, stepX);
+                var newY = GetNewCoordinate(originPos.Y, i, stepY);
 
-                System.Threading.Thread.Sleep(2);
+                SetCursorPos(newX, newY);
+                Sleep(1);
             }
+            originPos.X = GetNewCoordinate(originPos.X, length, stepX);
+            originPos.Y = GetNewCoordinate(originPos.Y, length, stepY);
         }
 
-        private static PointF PointOnCircle(float radius, float angle, PointF origin)
-        {
-            // Convert from degrees to radians via multiplication by PI/180        
-            var x = (float)(radius * Math.Cos(angle * Math.PI / 180F)) - radius + origin.X;
-            var y = (float)(radius * Math.Sin(angle * Math.PI / 180F)) + origin.Y;
-
-            return new PointF(x, y);
-        }
+        private static int GetNewCoordinate(int oldCoordinate, int length, int step)
+            => oldCoordinate + length * step;
 
         private static void OnApplicationExit(object sender, EventArgs e)
         {
